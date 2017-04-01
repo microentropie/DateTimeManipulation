@@ -1,0 +1,3 @@
+serialize2eeprom KEYWORD1
+DateTime  KEYWORD1
+TimeSpan  KEYWORD1
