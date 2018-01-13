@@ -67,7 +67,7 @@ extern time_t system_mktime(uint32 year, uint32 mon, uint32 day, uint32 hour, ui
 
 #define snprintf sprintf_s
 #else //_MSC_VER
-#include <Arduino.h>
+#include <c_types.h>
 extern "C"
 {
   extern struct tm * ICACHE_FLASH_ATTR sntp_localtime(const time_t * tim_p);

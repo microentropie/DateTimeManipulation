@@ -568,6 +568,7 @@ char *DateTime::DateToString(char *TimeBuf, int szTimeBuf, struct TimeAndDateInf
   return DateTime::Iso8601DateTime(TimeBuf, szTimeBuf, utcUnixTime, printTzInfo, -99.0, false);
 }
 
+// time is parsed as is, TZ and DST are ignored
 bool DateTime::TryParseTime(const char *strTime, char chTimeSeparator, time_t &value)
 {
   // hh:mm[:ss] [am|pm]
