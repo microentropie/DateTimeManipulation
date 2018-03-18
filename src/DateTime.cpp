@@ -18,32 +18,6 @@ Sources repository: https://github.com/microentropie/
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef _MSC_VER
-//#ifndef uint64
-//  typedef unsigned long uint64;
-//#endif //uint64
-extern struct tm *sntp_mktm_r(const time_t * tim_p, struct tm *res, int is_gmtime);
-
-#ifndef uint32
-typedef unsigned int uint32;
-#endif //uint64
-
-extern time_t system_mktime(uint32 year, uint32 mon, uint32 day, uint32 hour, uint32 min, uint32 sec);
-
-#define snprintf sprintf_s
-#else //_MSC_VER
-extern "C"
-{
-
-  extern struct tm *sntp_mktm_r(const time_t * tim_p, struct tm *res, int is_gmtime);
-
-#ifndef uint32
-  typedef unsigned int uint32;
-#endif //uint64
-
-  extern time_t system_mktime(uint32 year, uint32 mon, uint32 day, uint32 hour, uint32 min, uint32 sec);
-}
-#endif //_MSC_VER
 
 DateTime::DateTime()
 {
@@ -75,12 +49,30 @@ DateTime::DateTime(time_t unixTimeStamp)
 
 DateTime::DateTime(int year, int month, int day)
 {
-  this->unixTimeStamp = system_mktime(year, month, day, 0, 0, 0);
+  //this->unixTimeStamp = system_mktime(year, month, day, 0, 0, 0);
+  struct tm tmUtm;
+  tmUtm.tm_isdst=false;
+  tmUtm.tm_sec=0;
+  tmUtm.tm_min=0;
+  tmUtm.tm_hour=0;
+  tmUtm.tm_mday=day;
+  tmUtm.tm_mon=month-1;
+  tmUtm.tm_year=year - 1900;
+  this->unixTimeStamp = mktime(&tmUtm);
   bTimeChanged = true;
 }
 DateTime::DateTime(int year, int month, int day, int hour, int minute, int second)
 {
-  this->unixTimeStamp = system_mktime(year, month, day, hour, minute, second);
+  //this->unixTimeStamp = system_mktime(year, month, day, hour, minute, second);
+  struct tm tmUtm;
+  tmUtm.tm_isdst=false;
+  tmUtm.tm_sec=second;
+  tmUtm.tm_min=minute;
+  tmUtm.tm_hour=hour;
+  tmUtm.tm_mday=day;
+  tmUtm.tm_mon=month-1;
+  tmUtm.tm_year=year - 1900;
+  this->unixTimeStamp = mktime(&tmUtm);
   bTimeChanged = true;
 }
 
@@ -88,7 +80,8 @@ struct tm *DateTime::GetTm()
 {
   if (bTimeChanged)
   {
-    sntp_mktm_r(&unixTimeStamp, &tmCopy, 0);
+    tmCopy = *gmtime(&unixTimeStamp);
+    //sntp_mktm_r(&unixTimeStamp, &tmCopy, 0);
     bTimeChanged = false;
   }
   return &tmCopy;
@@ -107,8 +100,13 @@ struct tm *DateTime::GetTm()
 /*static*/ time_t DateTime::Date(time_t utm)
 {
   struct tm tmUtm;
-  sntp_mktm_r(&utm, &tmUtm, 0);
-  return system_mktime(year(&tmUtm), month(&tmUtm), day(&tmUtm), 0, 0, 0);
+  //sntp_mktm_r(&utm, &tmUtm, 0);
+  //return system_mktime(year(&tmUtm), month(&tmUtm), day(&tmUtm), 0, 0, 0);
+  tmUtm = *gmtime(&utm);
+  tmUtm.tm_sec=0;
+  tmUtm.tm_min=0;
+  tmUtm.tm_hour=0;
+  return mktime(&tmUtm);
 }
 
 time_t DateTime::Date()

@@ -66,14 +66,17 @@ typedef unsigned int uint32;
 extern time_t system_mktime(uint32 year, uint32 mon, uint32 day, uint32 hour, uint32 min, uint32 sec);
 
 #define snprintf sprintf_s
-#else //_MSC_VER
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <c_types.h>
 extern "C"
 {
   extern struct tm * ICACHE_FLASH_ATTR sntp_localtime(const time_t * tim_p);
   extern struct tm * ICACHE_FLASH_ATTR sntp_mktm_r(const time_t * tim_p, struct tm *res, int is_gmtime);
 }
-#endif //_MSC_VER
+#elif defined(ARDUINO_ARCH_ESP32) 
+#else
+  #error("undefined architecture")
+#endif
 
 
 //bool IsDayLightSavingsTimeCET(time_t utcUnixTime);
@@ -100,7 +103,13 @@ bool IsDayLightSavingsTimeCET(time_t localUnixTime)
   tm res;
   // subtract 1 hour because DST starts and ends at 1:00 AM
   localUnixTime -= SECS_PER_HOUR;
+#if defined(ARDUINO_ARCH_ESP8266)
   sntp_mktm_r(&localUnixTime, &res, 0);
+#elif defined(ARDUINO_ARCH_ESP32) 
+  res = *gmtime(&localUnixTime);
+#else
+  #error("undefined architecture")
+#endif
 
   if (month(&res) < 3 || month(&res) > 10) return false; // no DST in Jan, Feb, Nov, Dec
   if (month(&res) > 3 && month(&res) < 10) return true; // yes DST in Apr, May, Jun, Jul, Aug, Sep
@@ -132,7 +141,13 @@ bool IsDayLightSavingsTimeUSA(time_t localUnixTime)
   tm res;
   // subtract 2 hours because DST starts and ends at 2:00 AM
   localUnixTime -= (SECS_PER_HOUR << 1);
+#if defined(ARDUINO_ARCH_ESP8266)
   sntp_mktm_r(&localUnixTime, &res, 0);
+#elif defined(ARDUINO_ARCH_ESP32) 
+  res = *gmtime(&localUnixTime);
+#else
+  #error("undefined architecture")
+#endif
 
   // Daylight saving time starts on the second Sunday in March and
   // ends on the first Sunday in November,
